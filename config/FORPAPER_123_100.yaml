@@ -3,40 +3,50 @@
 ################################################################################
 
 program:
-    seed: 123
+    seed: 123   # global RNG seed passed to pl.seed_everything for reproducibility
 
 datamodule:
+    # --- Unlabelled data (used by train.py for SSL pre-training) ---
     train_data_dir: "data/unlabelled_shuf_yuanetal_over25_totalminus100000.csv"
-    val_data_dir: "data/unlabelled_shuf_yuanetal_over25_100000.csv"
-    test_data_dir: "data/unlabelled_shuf_yuanetal_over25_1000.csv"
+    val_data_dir:   "data/unlabelled_shuf_yuanetal_over25_100000.csv"
+    test_data_dir:  "data/unlabelled_shuf_yuanetal_over25_1000.csv"
+
+    # --- Labelled data (used by finetune.py and evaluate.py) ---
     train_data: "data/yuanetal_california_train_special_over15dates_100_seed123.csv"
-    test_data: "data/yuanetal_california_test_special_over15dates_1000_seed123.csv"
-    batch_size: 128
-    num_workers: 12
-    cmask: 1
-    n_masked: 0
-    n_augmentations: 15
-    n_ssamples: 15
-    nbands: 10
+    val_data:   "data/yuanetal_california_validate_special_over15dates_random1300.csv"
+    test_data:  "data/yuanetal_california_test_special_over15dates_1000_seed123.csv"
+
+    batch_size:       128   # samples per gradient step
+    num_workers:      12    # DataLoader worker processes (set to 0 on Windows if issues arise)
+    cmask:            1     # cloud masking: 0=none, 1=drop cloud-flagged dates, 2=artificial mask
+    n_masked:         0     # dates to artificially mask when cmask==2
+    n_augmentations:  15    # number of stochastic sparse-sampling copies per epoch
+    n_ssamples:       15    # timesteps drawn per sparse temporal sample
+    nbands:           10    # spectral bands per timestep (NDVI/GCVI added on top by dataset)
 
 model:
-    encoder_no: 2
-    encoder_out_dim: 256
-    num_training_samples: 1000
-    batch_size: 128
-    z_dim: 256
-    max_epochs: 100
-    embeddings_name: "dummy_embeddings.csv"
-    ckpt_name: "stbt-paper-seed123"
-    cont_epoch: "outputs/baseline-epoch=90-val_loss=7.62.ckpt"
+    encoder_no:       2     # encoder architecture: 1=3-layer FC, 2=4-layer FC, 4=ResNet-18
+    encoder_out_dim:  256   # dimensionality of the encoder output representation
+    num_training_samples: 1000  # approximate; used when data_len cannot be computed at parse time
+    batch_size:       128
+    z_dim:            256   # projection head output dim for Barlow Twins loss
+    max_epochs:       100   # total SSL pre-training epochs (train.py)
+    embeddings_name:  "dummy_embeddings.csv"  # filename for saved representation CSV (evaluate.py)
+    ckpt_name:        "stbt-paper-seed123"    # prefix for checkpoint filenames (train.py)
+    cont_epoch:       "outputs/baseline-epoch=90-val_loss=7.62.ckpt"  # pre-trained SSL checkpoint to load
 
 trainer:
-    default_root_dir: "outputs2/"
-    log_every_n_steps: 5
-    save_top_k: 2
+    default_root_dir:   "outputs2/"   # Lightning default checkpoint/log directory
+    log_every_n_steps:  5             # how often (in steps) metrics are logged to WandB
+    save_top_k:         2             # max checkpoints to keep (train.py ModelCheckpoint)
 
 logger:
-    log_dir: "barlowtwins-mlisaius-traintest-full"
+    log_dir: "barlowtwins-mlisaius-traintest-full"   # WandB project name
 
 finetune:
-    ckpt: "forfinetune/sample-finetune-accmax-epoch=190-val_acc=0.87.ckpt"
+    ckpt:            "forfinetune/sample-finetune-accmax-epoch=190-val_acc=0.87.ckpt"  # legacy finetune ckpt path
+    num_classes:     13       # number of crop-type classes in the California dataset
+    probe_epochs:    50       # Phase 1 epoch budget (encoder frozen, head only)
+    finetune_epochs: 50       # Phase 2 epoch budget (full end-to-end training)
+    head_lr:         4.0e-4   # learning rate for the classification head (both phases)
+    encoder_lr:      4.0e-5   # learning rate for the encoder in Phase 2 (10× lower than head)
