@@ -150,6 +150,11 @@ class CustomDPixDataset:
         return (sparsesample1_t, sparsesample2_t), label, id
 
     def __len__(self):
+        """Return the number of d-pixels in the dataset.
+
+        Returns:
+            int: Total number of rows in the underlying data array.
+        """
         return np.asarray(self.data).shape[0]
 
 

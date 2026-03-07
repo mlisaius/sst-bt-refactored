@@ -370,11 +370,26 @@ class BarlowTwins(LightningModule):
         return self.loss_fn(z1, z2)
 
     def training_step(self, batch, batch_idx):
+        """Execute one training step and log the per-step loss.
+
+        Args:
+            batch: Tuple of ``((x1, x2), label, id)`` from the training DataLoader.
+            batch_idx (int): Index of the current batch within the epoch.
+
+        Returns:
+            torch.Tensor: Scalar training loss used for backpropagation.
+        """
         loss = self.shared_step(batch)
         self.log("train_loss", loss, on_step=True, on_epoch=False)
         return loss
 
     def validation_step(self, batch, batch_idx):
+        """Execute one validation step and log the per-epoch loss.
+
+        Args:
+            batch: Tuple of ``((x1, x2), label, id)`` from the validation DataLoader.
+            batch_idx (int): Index of the current batch within the epoch.
+        """
         loss = self.shared_step(batch)
         self.log("val_loss", loss, on_step=False, on_epoch=True)
 
