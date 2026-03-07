@@ -1,0 +1,42 @@
+################################################################################
+#  CONFIGURATIONS FOR BINARY SEGMENTATION FOR A UNET WITH RESNET18 ENCODER
+################################################################################
+
+program:
+    seed: 123
+
+datamodule:
+    train_data_dir: "data/unlabelled_shuf_yuanetal_over25_totalminus100000.csv"
+    val_data_dir: "data/unlabelled_shuf_yuanetal_over25_100000.csv"
+    test_data_dir: "data/unlabelled_shuf_yuanetal_over25_1000.csv"
+    train_data: "data/yuanetal_california_train_special_over15dates_100_seed123.csv"
+    test_data: "data/yuanetal_california_test_special_over15dates_1000_seed123.csv"
+    batch_size: 128
+    num_workers: 12
+    cmask: 1
+    n_masked: 0
+    n_augmentations: 15
+    n_ssamples: 15
+    nbands: 10
+
+model:
+    encoder_no: 2
+    encoder_out_dim: 256
+    num_training_samples: 1000
+    batch_size: 128
+    z_dim: 256
+    max_epochs: 100
+    embeddings_name: "dummy_embeddings.csv"
+    ckpt_name: "stbt-paper-seed123"
+    cont_epoch: "outputs/baseline-epoch=90-val_loss=7.62.ckpt"
+
+trainer:
+    default_root_dir: "outputs2/"
+    log_every_n_steps: 5
+    save_top_k: 2
+
+logger:
+    log_dir: "barlowtwins-mlisaius-traintest-full"
+
+finetune:
+    ckpt: "forfinetune/sample-finetune-accmax-epoch=190-val_acc=0.87.ckpt"
