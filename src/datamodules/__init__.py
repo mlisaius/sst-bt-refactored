@@ -1,9 +1,11 @@
 """Public API for the datamodules package.
 
-Exports the primary data module used for SSL pre-training on unlabelled
-satellite time-series d-pixels with on-the-fly vegetation index computation.
+Exports:
+    BarlowTwinsDataModuleUVI: Lightning DataModule for unlabelled SSL pre-training.
+    create_test_dataloaderVIb: Dataloader factory for labelled evaluation data.
 """
 
 from .btdmunlabelledVIs import BarlowTwinsDataModule as BarlowTwinsDataModuleUVI
+from .btdmVIs import create_test_dataloader as create_test_dataloaderVIb
 
-__all__ = ("BarlowTwinsDataModuleUVI",)
+__all__ = ("BarlowTwinsDataModuleUVI", "create_test_dataloaderVIb")
